@@ -1,6 +1,6 @@
 use crate::{req, Error, ShoelaceData, TEMPLATES};
 use actix_web::{
-    get,
+    get, post,
     http::header::ContentType,
     web::{self, Data, Redirect},
     HttpResponse, Responder,
@@ -114,6 +114,21 @@ async fn post(post: web::Path<String>, store: Data<ShoelaceData>) -> Result<Http
     Ok(HttpResponse::Ok()
         .insert_header(ContentType::html())
         .body(resp))
+}
+
+#[post("/search")]
+async fn search(request: web::Query<Find>) -> impl Responder {
+    // Fetches query value
+    let values = request.into_inner();
+
+    let url = values.value.split("?").collect::<Vec<&str>>()[0];
+    if url.contains("/post/") {
+        let post_id = url.split("/post/").collect::<Vec<&str>>()[1];
+        Redirect::to(format!("/t/{}", post_id)).temporary()
+    } else {
+        let username = url.split("/@").collect::<Vec<&str>>()[1];
+        Redirect::to(format!("/@{}", username)).temporary()
+    }
 }
 
 // User finder endpoint
